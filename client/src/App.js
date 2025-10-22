@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import BotCollection from "./components/BotCollection";
 import YourBotArmy from "./components/YourBotArmy";
+import "./App.css"; // import CSS (create file below)
 
 function App() {
   const [army, setArmy] = useState([]);
@@ -12,25 +13,49 @@ function App() {
     }
   }
 
-  // Remove bot from army
+  // Release (remove from army only)
   function handleRemoveBot(bot) {
-    setArmy(army.filter((b) => b.id !== bot.id));
+    setArmy((prev) => prev.filter((b) => b.id !== bot.id));
+  }
+
+  // Discharge (delete from backend and remove from army)
+  function handleDischarge(bot) {
+    // Optimistically remove from state first
+    setArmy((prev) => prev.filter((b) => b.id !== bot.id));
+
+    // Delete on backend
+    fetch(`http://localhost:8001/bots/${bot.id}`, {
+      method: "DELETE",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to delete bot");
+        }
+      })
+      .catch((err) => {
+        console.error("Error deleting bot:", err);
+        // On error, optionally re-add bot to army (rollback)
+        // setArmy((prev) => [...prev, bot]);
+      });
   }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>⚔️ Bot Battlr</h1>
+    <div className="app-container">
+      <h1 className="title">⚔️ Bot Battlr</h1>
 
-      {/* Your Bot Army Section */}
-      <YourBotArmy bots={army} onRemoveBot={handleRemoveBot} />
+      <YourBotArmy
+        bots={army}
+        onRemoveBot={handleRemoveBot}
+        onDischarge={handleDischarge}
+      />
 
-      <hr style={{ margin: "30px 0" }} />
+      <hr className="divider" />
 
-      {/* Available Bots Section */}
-      <h2 style={{ textAlign: "center" }}>🤖 Available Bots</h2>
+      <h2 className="subtitle">🤖 Available Bots</h2>
       <BotCollection onAddBot={handleAddBot} />
     </div>
   );
 }
 
 export default App;
+

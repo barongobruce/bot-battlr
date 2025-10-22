@@ -1,16 +1,36 @@
-import React from "react";
-import BotCard from "./BotCard";
 
-function BotCollection({ bots, onAddBot, onDeleteBot }) {
+import React, { useEffect, useState } from "react";
+
+function BotCollection({ onAddBot }) {
+  const [bots, setBots] = useState([]);
+
+  // Fetch bots from JSON server
+  useEffect(() => {
+    fetch("http://localhost:8001/bots")
+      .then((res) => res.json())
+      .then((data) => setBots(data))
+      .catch((err) => console.error("Error fetching bots:", err));
+  }, []);
+
   return (
-    <div className="bot-collection">
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "15px", justifyContent: "center" }}>
       {bots.map((bot) => (
-        <BotCard
+        <div
           key={bot.id}
-          bot={bot}
+          style={{
+            border: "1px solid gray",
+            padding: "10px",
+            width: "200px",
+            textAlign: "center",
+            cursor: "pointer",
+          }}
           onClick={() => onAddBot(bot)}
-          onDelete={onDeleteBot}
-        />
+        >
+          <img src={bot.avatar_url} alt={bot.name} width="100" />
+          <h3>{bot.name}</h3>
+          <p>{bot.bot_class}</p>
+          <p>HP: {bot.health} | DMG: {bot.damage} | Armor: {bot.armor}</p>
+        </div>
       ))}
     </div>
   );
