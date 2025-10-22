@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 
+// ➡️ Define the public API URL here
+const API_URL = "https://my-json-server.typicode.com/barongobruce/bot-battlr/bots";
+
 function App() {
   const [bots, setBots] = useState([]);
   const [army, setArmy] = useState([]);
 
-  // Fetch bots from local JSON server
+  // Fetch bots from the public API
   useEffect(() => {
-    fetch("http://localhost:8001/bots")
+    fetch(API_URL)
       .then((res) => res.json())
       .then((data) => setBots(data))
       .catch((err) => console.error("Error fetching bots:", err));
@@ -27,7 +30,8 @@ function App() {
 
   // Function to discharge (delete) a bot permanently
   const dischargeBot = (id) => {
-    fetch(`http://localhost:8001/bots/${id}`, {
+    // ➡️ Use the API_URL for the DELETE request
+    fetch(`${API_URL}/${id}`, {
       method: "DELETE",
     }).then(() => {
       setArmy(army.filter((bot) => bot.id !== id));
