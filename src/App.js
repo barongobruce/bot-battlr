@@ -1,86 +1,70 @@
 import React, { useState, useEffect } from "react";
+import BotCollection from "./components/BotCollection";
+import YourBotArmy from "./components/YourBotArmy";
 import "./App.css";
 
-// ➡️ Define the public API URL here
-const API_URL = "https://my-json-server.typicode.com/barongobruce/bot-battlr/bots";
+// This is the public endpoint you were trying to fix earlier
+const BOTS_API = "https://bot-battlr-api.onrender.com/bots";
 
 function App() {
+  // FIX: Initialize bots as an empty array [] to prevent the "bots.map is not a function" error
   const [bots, setBots] = useState([]);
   const [army, setArmy] = useState([]);
 
-  // Fetch bots from the public API
+  // Fetch all bots on initial component mount
   useEffect(() => {
-    fetch(API_URL)
-      .then((res) => res.json())
+    fetch(BOTS_API)
+      .then((r) => r.json())
       .then((data) => setBots(data))
-      .catch((err) => console.error("Error fetching bots:", err));
+      .catch((error) => console.error("Error fetching bots:", error));
   }, []);
 
-  // Function to enlist a bot
+  // Handler to add a bot to the army
   const enlistBot = (bot) => {
+    // Prevent enlisting a bot if it's already in the army
     if (!army.find((b) => b.id === bot.id)) {
       setArmy([...army, bot]);
     }
   };
 
-  // Function to release a bot
-  const releaseBot = (id) => {
-    setArmy(army.filter((bot) => bot.id !== id));
+  // Handler to remove a bot from the army
+  const dischargeBot = (bot) => {
+    setArmy(army.filter((b) => b.id !== bot.id));
   };
+  
+  // Optional: Handler to permanently delete a bot from the backend and the UI
+  const deleteBot = (bot) => {
+    // 1. Send DELETE request to the backend
+    fetch(`${BOTS_API}/${bot.id}`, {
+      method: 'DELETE'
+    })
+    .then(r => {
+      if (r.ok) {
+        // 2. Remove from the local army state (if present)
+        setArmy(army.filter((b) => b.id !== bot.id));
 
-  // Function to discharge (delete) a bot permanently
-  const dischargeBot = (id) => {
-    // ➡️ Use the API_URL for the DELETE request
-    fetch(`${API_URL}/${id}`, {
-      method: "DELETE",
-    }).then(() => {
-      setArmy(army.filter((bot) => bot.id !== id));
-      setBots(bots.filter((bot) => bot.id !== id));
-    });
+        // 3. Remove from the local bots collection state
+        setBots(bots.filter((b) => b.id !== bot.id));
+      } else {
+        console.error("Failed to delete bot on server.");
+      }
+    })
+    .catch((error) => console.error("Error deleting bot:", error));
   };
 
   return (
     <div className="App">
-      <h1>⚔️ Bot Battlr</h1>
-
-      <section>
-        <h2>🪖 Your Bot Army</h2>
-        {army.length === 0 ? (
-          <p>No bots enlisted yet. Click on a bot to add it!</p>
-        ) : (
-          <div className="bot-army">
-            {army.map((bot) => (
-              <div key={bot.id} className="bot-card" onClick={() => releaseBot(bot.id)}>
-                <img src={bot.avatar_url} alt={bot.name} />
-                <h3>{bot.name}</h3>
-                <button
-                  className="discharge-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    dischargeBot(bot.id);
-                  }}
-                >
-                  ❌ Discharge
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section>
-        <h2>🤖 Available Bots</h2>
-        <div className="bot-collection">
-          {bots.map((bot) => (
-            <div key={bot.id} className="bot-card" onClick={() => enlistBot(bot)}>
-              <img src={bot.avatar_url} alt={bot.name} />
-              <h3>{bot.name}</h3>
-              <p>{bot.bot_class}</p>
-              <p>❤️ {bot.health} | ⚔️ {bot.damage} | 🛡️ {bot.armor}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <YourBotArmy 
+        army={army} 
+        onDischarge={dischargeBot} 
+        onDelete={deleteBot}
+      />
+      <BotCollection 
+        bots={bots} 
+        onEnlist={enlistBot} 
+        onDelete={deleteBot} 
+        army={army} // Pass army to allow BotCollection to disable enlisted bots
+      />
     </div>
   );
 }

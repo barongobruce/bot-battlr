@@ -1,37 +1,24 @@
+import React from "react";
+import BotCard from "./BotCard";
+// REMOVED: import "./BotCollection.css"; // <-- This line caused the error
 
-import React, { useEffect, useState } from "react";
-
-function BotCollection({ onAddBot }) {
-  const [bots, setBots] = useState([]);
-
-  // Fetch bots from JSON server
-  useEffect(() => {
-    fetch("http://localhost:8001/bots")
-      .then((res) => res.json())
-      .then((data) => setBots(data))
-      .catch((err) => console.error("Error fetching bots:", err));
-  }, []);
-
+function BotCollection({ bots, onEnlist, onDelete, army }) {
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "15px", justifyContent: "center" }}>
-      {bots.map((bot) => (
-        <div
-          key={bot.id}
-          style={{
-            border: "1px solid gray",
-            padding: "10px",
-            width: "200px",
-            textAlign: "center",
-            cursor: "pointer",
-          }}
-          onClick={() => onAddBot(bot)}
-        >
-          <img src={bot.avatar_url} alt={bot.name} width="100" />
-          <h3>{bot.name}</h3>
-          <p>{bot.bot_class}</p>
-          <p>HP: {bot.health} | DMG: {bot.damage} | Armor: {bot.armor}</p>
-        </div>
-      ))}
+    <div className="bot-collection">
+      <h2>🤖 Bot Collection</h2>
+      <div className="cards-grid">
+        {bots.map((bot) => (
+          <BotCard
+            key={bot.id}
+            bot={bot}
+            // CRITICAL FIX: Pass the onEnlist handler to the BotCard
+            onEnlist={onEnlist} 
+            onDelete={onDelete}
+            // Pass isEnlisted status for visual styling (optional but good practice)
+            isEnlisted={army.some(armyBot => armyBot.id === bot.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

@@ -1,21 +1,31 @@
+
+
 import React from "react";
 
-function YourBotArmy({ bots, onRemoveBot, onDischarge }) {
+// FIX:
+// 1. Changed 'bots' to 'army' to match the prop passed from App.js.
+// 2. Added 'army = []' to prevent 'reading length of undefined' error.
+// 3. Renamed onRemoveBot to onDelete (assuming onDischarge is for removing from army,
+//    and we use another prop for permanent delete, which App.js passes as onDelete).
+function YourBotArmy({ army = [], onDischarge, onDelete }) {
   return (
     <div className="army-section">
       <h2 className="army-title">🪖 Your Bot Army</h2>
       <div className="cards-grid">
-        {bots.length === 0 ? (
+        {/* Check the length of the 'army' array */}
+        {army.length === 0 ? (
           <p className="empty-msg">No bots enlisted yet. Click on a bot to add it!</p>
         ) : (
-          bots.map((bot) => (
+          // Map over the 'army' array
+          army.map((bot) => (
             <div key={bot.id} className="card">
+              {/* This button will remove the bot from the army (onDischarge) */}
               <button
-                className="discharge-btn"
-                title="Discharge (delete permanently)"
+                className="release-btn"
+                // Renamed from onRemoveBot to onDischarge/onDelete for clarity
                 onClick={() => onDischarge(bot)}
               >
-                ✖
+                Release
               </button>
 
               <img src={bot.avatar_url} alt={bot.name} className="avatar" />
@@ -23,11 +33,13 @@ function YourBotArmy({ bots, onRemoveBot, onDischarge }) {
               <p className="bot-class">{bot.bot_class}</p>
               <p className="stats">HP: {bot.health} | DMG: {bot.damage} | ARM: {bot.armor}</p>
 
+              {/* This button performs the permanent deletion (onDelete) */}
               <button
-                className="release-btn"
-                onClick={() => onRemoveBot(bot)}
+                className="discharge-btn"
+                title="Delete Permanently"
+                onClick={() => onDelete(bot)} // Uses the correct onDelete handler
               >
-                Release
+                ✖
               </button>
             </div>
           ))
@@ -38,4 +50,3 @@ function YourBotArmy({ bots, onRemoveBot, onDischarge }) {
 }
 
 export default YourBotArmy;
-
